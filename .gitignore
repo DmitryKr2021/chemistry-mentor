@@ -1,0 +1,81 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+.next/
+/out/
+
+# 🔹 TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# production
+/build
+config/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env
+.env*
+.env.*
+.env.production
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# 🔹 Prisma
+prisma/migrations/
+# Если не хотите пушить миграции — раскомментируйте выше
+# Но обычно миграции ПУШАТ, чтобы коллеги могли их применить
+# prisma/dev.db
+# prisma/dev.db-journal
+/src/generated/prisma
+
+
+# Контент блога (хранится отдельно)
+posts/
+
+# Утилиты для локальной разработки
+utils/scripts/sync-posts.ts
+utils/scripts/seed.ts
+prisma/seed.ts
+prisma/seed-homework.ts
+prisma/seed-tests.ts
+
+# Загруженные пользователями файлы
+public/uploads/
+
+# Secrets
+credentials.json
+token.json
+
+# Node
+node_modules/
+dist/
+build/
