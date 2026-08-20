@@ -59,7 +59,7 @@ prisma/migrations/
 
 
 # Контент блога (хранится отдельно)
-posts/
+# posts/
 
 # Утилиты для локальной разработки
 utils/scripts/sync-posts.ts
