@@ -10,6 +10,7 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // url: process.env["DATABASE_URL"], // Так было при разработке
+    url: process.env.DATABASE_URL, // так при запуске с Docker
   },
 });
