@@ -47,7 +47,8 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Применяем миграции БД и запускаем сервер
-# CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"] // С этой строкой ошибка призмы из-за отсутствия миграций
+# Применяем миграции БД и запускаем сервер - для деплоя БД
+CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"] 
+
 # Используем db push, который более гибок для локальной разработки
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
+# CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
