@@ -50,7 +50,7 @@ yarn-error.log*
 next-env.d.ts
 
 # 🔹 Prisma
-prisma/migrations/
+# prisma/migrations/
 # Если не хотите пушить миграции — раскомментируйте выше
 # Но обычно миграции ПУШАТ, чтобы коллеги могли их применить
 # prisma/dev.db
