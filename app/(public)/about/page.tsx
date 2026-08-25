@@ -91,76 +91,118 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Achievement 0 */}
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0">
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0 rounded-xl">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-8 h-8 text-blue-600" />
+                {/* Illustration */}
+                <div className="relative">
+                  <div className="aspect-[1/1] rounded-xl overflow-hidden shadow-xl relative">
+                    <Image
+                      src="/images/about/awards.jpg"
+                      alt="Олимпиады"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                 </div>
+
                 <h3 className="font-semibold text-slate-800 mb-2">
-                  Призер всесоюзной олимпиады по химии
+                  Участие в олимпиадах
                 </h3>
-                <p className="text-sm text-slate-600">1981 г.</p>
+                <p className="text-sm text-slate-600">
+                  В юношеском возрасте - неоднократный участник школьных и
+                  студенческих олимпиад. Призер всесоюзной олимпиады по химии
+                  1981 г.
+                </p>
               </CardContent>
             </Card>
 
             {/* Achievement 1 */}
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0">
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0 rounded-xl">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-8 h-8 text-blue-600" />
+                {/* Illustration */}
+                <div className="relative">
+                  <div className="aspect-[1/1] rounded-xl overflow-hidden shadow-xl relative">
+                    <Image
+                      src="/images/about/doctor.png"
+                      alt="Доктор наук"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                 </div>
                 <h3 className="font-semibold text-slate-800 mb-2">
                   Доктор химических наук
                 </h3>
                 <p className="text-sm text-slate-600">
-                  Специальность - органическая химия
+                  Специальность - органическая химия. Автор более 150 статей, 1
+                  монографии, 3 патентов.
                 </p>
               </CardContent>
             </Card>
 
             {/* Achievement 2 */}
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0">
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0 rounded-xl">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BadgeCheck className="w-8 h-8 text-green-600" />
+                {/* Illustration */}
+                <div className="relative">
+                  <div className="aspect-[1/1] rounded-xl overflow-hidden shadow-xl relative">
+                    <Image
+                      src="/images/about/qualification.png"
+                      alt="Квалификация"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                 </div>
                 <h3 className="font-semibold text-slate-800 mb-2">
                   Повышение квалификации
                 </h3>
+                <p className="text-sm text-slate-600">
+                  Помимо органической химии специализировался по направлениям:
+                </p>
+                <p className="text-sm text-slate-600">
+                  - Электропроводящие полимеры
+                </p>
                 <p className="text-sm text-slate-600">
                   - Электрохромные материалы
                 </p>
                 <p className="text-sm text-slate-600">
                   - Компьютерные технологии в химии
                 </p>
+                <p className="text-sm text-slate-600">- Хемоинформатика</p>
               </CardContent>
             </Card>
 
             {/* Achievement 3 */}
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0">
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0 rounded-xl">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-purple-600" />
+                {/* Illustration */}
+                <div className="relative">
+                  <div className="aspect-[1/1] rounded-xl overflow-hidden shadow-xl relative">
+                    <Image
+                      src="/images/about/students.jpg"
+                      alt="Ученики"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                 </div>
                 <h3 className="font-semibold text-slate-800 mb-2">
-                  Публикации
+                  Мои ученики
                 </h3>
-                <p className="text-sm text-slate-600">- Монография</p>
-                <p className="text-sm text-slate-600">- более 100 статей</p>
-                <p className="text-sm text-slate-600">- 3 патента</p>
-              </CardContent>
-            </Card>
-
-            {/* Achievement 4 */}
-            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border-0">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <GraduationCap className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="font-semibold text-slate-800 mb-2">
-                  Более 700 студентов и школьников
-                </h3>
-                <p className="text-sm text-slate-600">Прошли обучение</p>
+                <p className="text-sm text-slate-600">
+                  Среди моих учеников более 700 студентов и школьников. Одни из
+                  них поступили в вузы, другие сдали зачеты и экзамены, третьи -
+                  получили дипломы об окончании
+                </p>
               </CardContent>
             </Card>
           </div>

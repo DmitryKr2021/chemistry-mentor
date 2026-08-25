@@ -10,6 +10,7 @@
     "sync:posts": "dotenvx run -- tsx app/utils/scripts/sync-posts.ts",
     "seed": "npx prisma db seed",
     "seed:homework": "tsx prisma/seed-homework.ts",
+    "seed:tests": "tsx prisma/seed-tests.ts",
     "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-homework.ts"
   },
   "prisma": {
