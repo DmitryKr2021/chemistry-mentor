@@ -22,13 +22,15 @@ export default function AboutPage() {
               {/* Photo */}
               <div className="relative">
                 <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-xl relative">
-                  <Image
-                    src="/images/about/foto_in_lab.png"
-                    alt="Dmitry - репетитор по химии"
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover"
-                    priority
+                  <video
+                    className="absolute inset-0 w-full h-full object-cover"
+                    src="/images/about/vid_02.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    poster="/images/about/foto_in_lab.png"
                   />
                 </div>
               </div>
