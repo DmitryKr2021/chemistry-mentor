@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { prisma } from "@/app/utils/prisma";
+
+// 🔹 Инициализация Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// 🔹 Адрес отправителя (используем тот же, что и в других файлах)
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const FROM_NAME = "Химия: путь к вершине";
 
 // Генерация случайного пароля
 function generatePassword(length: number = 10): string {
@@ -18,37 +25,29 @@ export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
 
-    // Поиск пользователя
+    // 1. Поиск пользователя
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
+    // 🔹 Защита от перебора email: всегда возвращаем успех, даже если пользователя нет
     if (!user) {
-      // Не раскрываем, существует ли пользователь
       return NextResponse.json({ success: true });
     }
 
-    // Генерация нового пароля
+    // 2. Генерация и хеширование нового пароля
     const newPassword = generatePassword();
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Обновление пароля в БД
+    // 3. Обновление пароля в БД
     await prisma.user.update({
       where: { id: user.id },
       data: { pwHash: hashedPassword },
     });
 
-    // Отправка email с новым паролем
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"Химия: путь к вершине" <${process.env.EMAIL_USER}>`,
+    // 4. Отправка email с новым паролем через Resend
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: email,
       subject: "🔑 Ваш новый пароль",
       html: `
@@ -106,9 +105,26 @@ export async function POST(request: NextRequest) {
       `,
     });
 
+    // 5. Обработка ошибок отправки
+    if (error) {
+      console.error("❌ Resend error (forgot password):", error);
+      // ⚠️ ВАЖНО: Пароль в БД уже изменен, но письмо не ушло.
+      // Возвращаем 500, чтобы фронтенд показал пользователю сообщение
+      // о необходимости связаться с поддержкой, иначе он потеряет доступ.
+      return NextResponse.json(
+        {
+          error:
+            "Пароль изменен, но не удалось отправить письмо. Пожалуйста, свяжитесь с поддержкой.",
+        },
+        { status: 500 },
+      );
+    }
+
+    console.log("✅ Email с новым паролем отправлен. Message ID:", data?.id);
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Forgot password error:", error);
+    console.error("❌ Forgot password API error:", error);
     return NextResponse.json(
       { error: "Ошибка при восстановлении пароля" },
       { status: 500 },

@@ -79,3 +79,7 @@ token.json
 node_modules/
 dist/
 build/
+
+# Старые версии
+*_OLD.ts
+*_old.ts

@@ -1,8 +1,17 @@
 "use server";
 
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { z } from "zod";
+
+// 🔹 Инициализация Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// 🔹 Адрес отправителя.
+// Пока вы не подтвердите свой домен в Resend, используйте onboarding@resend.dev
+// После подтверждения домена замените в .env на noreply@chemistry-mentor.ru
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const FROM_NAME = "Химия: путь к вершине";
 
 const contactSchema = z.object({
   name: z
@@ -67,26 +76,16 @@ export async function POST(request: NextRequest) {
 
   const { name, email, phone, message } = validated.data;
 
-  // 2. Простая защита от спама (можно заменить на полноценный rate-limit)
-  // const ip = request.headers.get("x-forwarded-for") || "unknown";
-  // Здесь можно добавить проверку: если с этого IP было много запросов за минуту — отклонить
-
-  // 3. Отправка письма
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-
   try {
-    console.log("📤 Sending email...");
+    console.log("📤 Отправка сообщений через Resend...");
 
-    // Отправляем письмо администратору
-    await transporter.sendMail({
-      from: `"Химия: путь к вершине" <${process.env.EMAIL_USER}>`,
-      to: process.env.CONTACT_EMAIL || process.env.EMAIL_USER,
+    // 2. Отправляем письмо АДМИНИСТРАТОРУ
+    const { data: adminData, error: adminError } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to:
+        process.env.CONTACT_EMAIL ||
+        process.env.RESEND_FROM_EMAIL ||
+        "onboarding@resend.dev",
       replyTo: email,
       subject: `📚 Новое сообщение от ${name}`,
       html: `
@@ -102,7 +101,6 @@ export async function POST(request: NextRequest) {
             .label { font-weight: 600; color: #64748b; font-size: 14px; margin-bottom: 4px; }
             .value { font-size: 16px; color: #1e293b; }
             .footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }
-            .badge { display: inline-block; padding: 4px 12px; background: #a4e747; color: #1e293b; border-radius: 20px; font-weight: 600; font-size: 14px; }
           </style>
         </head>
         <body>
@@ -116,32 +114,32 @@ export async function POST(request: NextRequest) {
                 <div class="label">Имя</div>
                 <div class="value">${name}</div>
               </div>
-
-                <div class="field">
+              ${
+                phone
+                  ? `
+              <div class="field">
                 <div class="label">Телефон</div>
                 <div class="value">
                   <a href="tel:${phone?.replace(/\D/g, "")}" style="color: #667eea; text-decoration: none;">${phone}</a>
                 </div>
-              </div>
-              
+              </div>`
+                  : ""
+              }
               <div class="field">
                 <div class="label">Email</div>
                 <div class="value">
                   <a href="mailto:${email}" style="color: #667eea; text-decoration: none;">${email}</a>
                 </div>
               </div>
-                    
               ${
                 message
                   ? `
               <div class="field">
                 <div class="label">Комментарий</div>
                 <div class="value">${message.replace(/\n/g, "<br>")}</div>
-              </div>
-              `
+              </div>`
                   : ""
               }
-              
               <div class="footer">
                 <strong>Химия: путь к вершине</strong><br>
                 Разблокируйте секреты вселенной вместе с нами! ⚛️
@@ -153,21 +151,22 @@ export async function POST(request: NextRequest) {
       `,
       text: `
 Новое сообщение
-
 Имя: ${name}
-Телефон: ${phone}
+Телефон: ${phone || "Не указан"}
 Email: ${email}
 ${message ? `\nСообщение:\n${message}` : ""}
-
 Отправлено: ${formattedDate} в ${formattedTime}
-
-Химия: путь к вершине
       `,
     });
 
-    // Опционально: отправить подтверждение пользователю
-    await transporter.sendMail({
-      from: `"Химия: путь к вершине" <${process.env.EMAIL_USER}>`,
+    if (adminError) {
+      console.error("❌ Ошибка отправки письма админу:", adminError);
+      throw new Error("Не удалось отправить уведомление администратору");
+    }
+
+    // 3. Отправляем письмо ПОДТВЕРЖДЕНИЯ ПОЛЬЗОВАТЕЛЮ
+    const { data: userData, error: userError } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: email,
       subject: "✅ Ваше сообщение принято",
       html: `
@@ -179,11 +178,11 @@ ${message ? `\nСообщение:\n${message}` : ""}
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: linear-gradient(135deg, #a4e747 0%, #667eea 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; text-align: center; }
             .content { background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; }
-            .button { display: inline-block; padding: 12px 24px; background: #a4e747; color: #1e293b; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
-            .button2 { display: inline-block; padding: 12px 24px; background: #6E8CD4; color: #1e293b; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+            .button { display: inline-block; padding: 12px 24px; background: #a4e747; color: #1e293b; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 10px 20px 0; }
+            .button2 { display: inline-block; padding: 12px 24px; background: #6E8CD4; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
           </style>
         </head>
-  <body>
+        <body>
           <div class="container">
             <div class="header">
               <h1 style="margin: 0;">✅ Сообщение принято!</h1>
@@ -194,8 +193,10 @@ ${message ? `\nСообщение:\n${message}` : ""}
               <p>Ваше сообщение успешно отправлено.</p>
               <p>Я свяжусь с вами в ближайшее время.</p>
               <p>Если у вас есть срочные вопросы, напишите мне на email или в мессенджеры.</p>
-              <a href="https://t.me/DmitryVK2021" class="button">Написать в Telegram</a>
-              <a href="https://vk.me/id446183970" class="button2">Написать в VK</a>
+              <div>
+                <a href="https://t.me/DmitryVK2021" class="button">Написать в Telegram</a>
+                <a href="https://vk.me/id446183970" class="button2">Написать в VK</a>
+              </div>
               <p style="margin-top: 30px; color: #64748b; font-size: 14px;">
                 С уважением,<br>
                 <strong>Дмитрий Крыльский</strong><br>
@@ -208,24 +209,26 @@ ${message ? `\nСообщение:\n${message}` : ""}
       `,
     });
 
-    console.log("✅ Email sent successfully");
+    if (userError) {
+      console.error("❌ Ошибка отправки письма пользователю:", userError);
+      // Не прерываем весь процесс, если письмо пользователю не ушло, но админ получил
+    }
+
+    console.log("✅ Email sent successfully. Admin ID:", adminData?.id);
 
     return NextResponse.json(
-      { success: true, message: "Сообщение отправлено" },
+      { success: true, message: "Сообщение успешно отправлено!" },
       { status: 200 },
     );
   } catch (error) {
-    console.error("❌ API Error:", error);
-    // Понятное сообщение для пользователя
-    let userMessage = "Ошибка при отправке сообщения";
-    if (error instanceof Error) {
-      // Можно логировать детали, но не показывать пользователю
-      if (error.message.includes("535")) {
-        userMessage = "Ошибка аутентификации почты";
-      } else if (error.message.includes("ETIMEDOUT")) {
-        userMessage = "Сервер не отвечает, попробуйте позже";
-      }
-    }
-    return NextResponse.json({ error: userMessage }, { status: 500 });
+    console.error("❌ API Contact Error:", error);
+
+    return NextResponse.json(
+      {
+        error:
+          "Ошибка при отправке сообщения. Пожалуйста, попробуйте позже или свяжитесь через Telegram.",
+      },
+      { status: 500 },
+    );
   }
 }

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { trialLessonSchema } from "@/lib/schemas/trialLessonSchema";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+// 🔹 Инициализация Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// 🔹 Адрес отправителя (консистентный с другими файлами)
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const FROM_NAME = "Химия: путь к вершине";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,6 +15,10 @@ export async function POST(request: NextRequest) {
     const validated = trialLessonSchema.safeParse(body);
 
     if (!validated.success) {
+      console.warn(
+        "⚠️ Trial lesson validation failed:",
+        validated.error.issues,
+      );
       return NextResponse.json(
         { error: "Некорректные данные формы" },
         { status: 400 },
@@ -15,15 +26,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, phone, email, topic, comment } = validated.data;
-
-    // Создаём транспортер
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
 
     // Форматируем дату и время
     const now = new Date();
@@ -37,10 +39,13 @@ export async function POST(request: NextRequest) {
       minute: "2-digit",
     });
 
-    // Отправляем письмо администратору
-    await transporter.sendMail({
-      from: `"Химия: путь к вершине" <${process.env.EMAIL_USER}>`,
-      to: process.env.CONTACT_EMAIL || process.env.EMAIL_USER,
+    // 📧 1. Отправляем письмо АДМИНИСТРАТОРУ через Resend
+    const { data: adminData, error: adminError } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to:
+        process.env.CONTACT_EMAIL ||
+        process.env.RESEND_FROM_EMAIL ||
+        "onboarding@resend.dev",
       replyTo: email,
       subject: `📚 Новая заявка на пробное занятие от ${name}`,
       html: `
@@ -70,37 +75,31 @@ export async function POST(request: NextRequest) {
                 <div class="label">Имя</div>
                 <div class="value">${name}</div>
               </div>
-
-                <div class="field">
+              <div class="field">
                 <div class="label">Телефон</div>
                 <div class="value">
                   <a href="tel:${phone.replace(/\D/g, "")}" style="color: #667eea; text-decoration: none;">${phone}</a>
                 </div>
               </div>
-              
               <div class="field">
                 <div class="label">Email</div>
                 <div class="value">
                   <a href="mailto:${email}" style="color: #667eea; text-decoration: none;">${email}</a>
                 </div>
               </div>
-              
               <div class="field">
                 <div class="label">Тема занятия</div>
                 <div class="badge">${topic}</div>
               </div>
-              
               ${
                 comment
                   ? `
               <div class="field">
                 <div class="label">Комментарий</div>
                 <div class="value">${comment.replace(/\n/g, "<br>")}</div>
-              </div>
-              `
+              </div>`
                   : ""
               }
-              
               <div class="footer">
                 <strong>Химия: путь к вершине</strong><br>
                 Разблокируйте секреты вселенной вместе с нами! ⚛️
@@ -125,9 +124,21 @@ ${comment ? `\nКомментарий:\n${comment}` : ""}
       `,
     });
 
-    // Опционально: отправить подтверждение пользователю
-    await transporter.sendMail({
-      from: `"Химия: путь к вершине" <${process.env.EMAIL_USER}>`,
+    if (adminError) {
+      console.error(
+        "❌ Ошибка отправки уведомления админу о пробном занятии:",
+        adminError,
+      );
+    } else {
+      console.log(
+        "✅ Уведомление админу отправлено. Message ID:",
+        adminData?.id,
+      );
+    }
+
+    // 📧 2. Отправляем письмо ПОДТВЕРЖДЕНИЯ ПОЛЬЗОВАТЕЛЮ через Resend
+    const { data: userData, error: userError } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: email,
       subject: "✅ Ваша заявка на пробное занятие принята",
       html: `
@@ -139,11 +150,11 @@ ${comment ? `\nКомментарий:\n${comment}` : ""}
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: linear-gradient(135deg, #a4e747 0%, #667eea 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; text-align: center; }
             .content { background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; }
-            .button { display: inline-block; padding: 12px 24px; background: #a4e747; color: #1e293b; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
-             .button2 { display: inline-block; padding: 12px 24px; background: #6E8CD4; color: #1e293b; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+            .button { display: inline-block; padding: 12px 24px; background: #a4e747; color: #1e293b; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 10px 20px 0; }
+            .button2 { display: inline-block; padding: 12px 24px; background: #6E8CD4; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
           </style>
         </head>
-  <body>
+        <body>
           <div class="container">
             <div class="header">
               <h1 style="margin: 0;">✅ Заявка принята!</h1>
@@ -154,8 +165,10 @@ ${comment ? `\nКомментарий:\n${comment}` : ""}
               <p>Ваша заявка на пробное занятие по теме <strong>"${topic}"</strong> успешно отправлена.</p>
               <p>Я свяжусь с вами по телефону <strong>${phone}</strong> в ближайшее время для согласования удобного времени.</p>
               <p>Если у вас есть срочные вопросы, напишите мне на email или в мессенджеры.</p>
-              <a href="https://t.me/DmitryVK2021" class="button">Написать в Telegram</a>
-               <a href="https://vk.me/id446183970" class="button2">Написать в VK</a>
+              <div>
+                <a href="https://t.me/DmitryVK2021" class="button">Написать в Telegram</a>
+                <a href="https://vk.me/id446183970" class="button2">Написать в VK</a>
+              </div>
               <p style="margin-top: 30px; color: #64748b; font-size: 14px;">
                 С уважением,<br>
                 <strong>Дмитрий Крыльский</strong><br>
@@ -168,9 +181,22 @@ ${comment ? `\nКомментарий:\n${comment}` : ""}
       `,
     });
 
+    if (userError) {
+      console.error(
+        "❌ Ошибка отправки подтверждения пользователю:",
+        userError,
+      );
+      // Не прерываем процесс: админ уведомление получил, заявка обработана.
+    } else {
+      console.log(
+        "✅ Подтверждение пользователю отправлено. Message ID:",
+        userData?.id,
+      );
+    }
+
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Trial lesson error:", error);
+    console.error("❌ Trial lesson API error:", error);
     return NextResponse.json(
       { error: "Ошибка при отправке заявки" },
       { status: 500 },

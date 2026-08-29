@@ -1,32 +1,22 @@
-// lib/email.ts
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-// 🔹 Создаём переиспользуемый transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
+// 🔹 Инициализация Resend
+// Убедитесь, что переменная RESEND_API_KEY добавлена в .env и в панель Timeweb
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
+// 🔹 Адрес отправителя.
+const FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL || "noreply@chemistry-mentor.ru";
+const FROM_NAME = "Дмитрий Крыльский | Репетитор по химии";
 
-  logger: true,
-  debug: true,
-});
-
-// 🔹 Проверка подключения (вызвать один раз при старте)
+// 🔹 Проверка конфигурации (вместо SMTP verify)
 export async function verifyEmailConnection() {
-  try {
-    await transporter.verify();
-    console.log("✅ SMTP подключение работает");
-    return true;
-  } catch (error) {
-    console.error("❌ SMTP ошибка:", error);
+  if (!process.env.RESEND_API_KEY) {
+    console.error("❌ RESEND_API_KEY не найден в переменных окружения!");
     return false;
   }
+  console.log("✅ Resend инициализирован. API ключ присутствует.");
+  return true;
 }
 
 // 🔹 Отправка ссылки на урок ученику
@@ -105,19 +95,25 @@ export async function sendMeetingLinkEmail({
   `.trim();
 
   try {
-    const result = await transporter.sendMail({
-      from: `"Дмитрий Крыльский | Репетитор по химии" <${process.env.SMTP_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: studentEmail,
       subject,
       html,
     });
 
-    console.log(
-      `✅ Email отправлен: ${studentEmail} (messageId: ${result.messageId})`,
-    );
-    return { success: true, messageId: result.messageId };
+    if (error) {
+      console.error(`❌ Ошибка отправки email на ${studentEmail}:`, error);
+      return { success: false, error: String(error) };
+    }
+
+    console.log(`✅ Email отправлен: ${studentEmail} (messageId: ${data?.id})`);
+    return { success: true, messageId: data?.id };
   } catch (error) {
-    console.error(`❌ Ошибка отправки email на ${studentEmail}:`, error);
+    console.error(
+      `❌ Критическая ошибка отправки email на ${studentEmail}:`,
+      error,
+    );
     return { success: false, error: String(error) };
   }
 }
@@ -137,8 +133,8 @@ export async function sendWelcomeEmail({
   console.log("📧 Отправка приветственного email на:", studentEmail);
 
   try {
-    const result = await transporter.sendMail({
-      from: `"Дмитрий Крыльский | Репетитор по химии" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: studentEmail,
       subject: `🎉 Добро пожаловать! Ваш аккаунт создан`,
       html: `
@@ -218,13 +214,18 @@ export async function sendWelcomeEmail({
       `,
     });
 
-    console.log(
-      "✅ Приветственный email отправлен! Message ID:",
-      result.messageId,
-    );
-    return { success: true, messageId: result.messageId };
+    if (error) {
+      console.error("❌ Ошибка отправки приветственного email:", error);
+      return { success: false, error: String(error) };
+    }
+
+    console.log("✅ Приветственный email отправлен! Message ID:", data?.id);
+    return { success: true, messageId: data?.id };
   } catch (error) {
-    console.error("❌ Ошибка отправки приветственного email:", error);
+    console.error(
+      "❌ Критическая ошибка отправки приветственного email:",
+      error,
+    );
     return { success: false, error: String(error) };
   }
 }
