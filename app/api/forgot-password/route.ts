@@ -7,7 +7,8 @@ import { prisma } from "@/app/utils/prisma";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // 🔹 Адрес отправителя (используем тот же, что и в других файлах)
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL || "noreply@chemistry-mentor.ru";
 const FROM_NAME = "Химия: путь к вершине";
 
 // Генерация случайного пароля

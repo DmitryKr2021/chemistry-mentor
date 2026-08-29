@@ -8,9 +8,8 @@ import { z } from "zod";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // 🔹 Адрес отправителя.
-// Пока вы не подтвердите свой домен в Resend, используйте onboarding@resend.dev
-// После подтверждения домена замените в .env на noreply@chemistry-mentor.ru
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL || "noreply@chemistry-mentor.ru";
 const FROM_NAME = "Химия: путь к вершине";
 
 const contactSchema = z.object({
