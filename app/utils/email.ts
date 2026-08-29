@@ -4,7 +4,7 @@ import { Resend } from "resend";
 // Убедитесь, что переменная RESEND_API_KEY добавлена в .env и в панель Timeweb
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// 🔹 Адрес отправителя.
+// 🔹 Адрес отправителя
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL || "noreply@chemistry-mentor.ru";
 const FROM_NAME = "Дмитрий Крыльский | Репетитор по химии";
