@@ -32,6 +32,9 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+ARG RESEND_API_KEY
+ENV RESEND_API_KEY=${RESEND_API_KEY}
+
 # 🔹 КОПИРУЕМ ТОЛЬКО ТО, ЧТО НУЖНО ДЛЯ ЗАПУСКА (Никакого COPY . . !)
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
