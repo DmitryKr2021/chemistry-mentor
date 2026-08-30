@@ -1,8 +1,20 @@
 import { Resend } from "resend";
 
-// 🔹 Инициализация Resend
-// Убедитесь, что переменная RESEND_API_KEY добавлена в .env и в панель Timeweb
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// 🔹 ЛЕНИВАЯ инициализация: клиент создаётся только при первом вызове функции
+let resendInstance: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error("❌ RESEND_API_KEY не установлен в переменных окружения");
+    }
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 // 🔹 Адрес отправителя
 const FROM_EMAIL =
@@ -36,6 +48,8 @@ export async function sendMeetingLinkEmail({
   topic?: string | null;
 }) {
   const subject = `🔗 Ссылка на занятие по химии — ${lessonDate} в ${lessonTime}`;
+
+  const resend = getResendClient();
 
   const html = `
 <!DOCTYPE html>
@@ -131,6 +145,8 @@ export async function sendWelcomeEmail({
   siteUrl: string;
 }) {
   console.log("📧 Отправка приветственного email на:", studentEmail);
+
+  const resend = getResendClient();
 
   try {
     const { data, error } = await resend.emails.send({

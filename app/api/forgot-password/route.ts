@@ -3,8 +3,19 @@ import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import { prisma } from "@/app/utils/prisma";
 
-// 🔹 Инициализация Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// // 🔹 Инициализация Resend
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ✅ СТАЛО (ленивая инициализация):
+let resendInstance: Resend | null = null;
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY не установлен");
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 // 🔹 Адрес отправителя (используем тот же, что и в других файлах)
 const FROM_EMAIL =
@@ -45,7 +56,7 @@ export async function POST(request: NextRequest) {
       where: { id: user.id },
       data: { pwHash: hashedPassword },
     });
-
+    const resend = getResendClient(); // 🔹 Вызов только при реальном запросе
     // 4. Отправка email с новым паролем через Resend
     const { data, error } = await resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,

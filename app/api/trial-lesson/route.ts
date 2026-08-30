@@ -3,7 +3,18 @@ import { trialLessonSchema } from "@/lib/schemas/trialLessonSchema";
 import { Resend } from "resend";
 
 // 🔹 Инициализация Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ✅ СТАЛО (ленивая инициализация):
+let resendInstance: Resend | null = null;
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY не установлен");
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 // 🔹 Адрес отправителя (консистентный с другими файлами)
 const FROM_EMAIL =
@@ -39,7 +50,7 @@ export async function POST(request: NextRequest) {
       hour: "2-digit",
       minute: "2-digit",
     });
-
+    const resend = getResendClient(); // 🔹 Вызов только при реальном запросе
     // 📧 1. Отправляем письмо АДМИНИСТРАТОРУ через Resend
     const { data: adminData, error: adminError } = await resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,

@@ -27,13 +27,12 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+# ARG RESEND_API_KEY
+# ENV RESEND_API_KEY=${RESEND_API_KEY}
 
 # Создаем непривилегированного пользователя для безопасности
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
-ARG RESEND_API_KEY
-ENV RESEND_API_KEY=${RESEND_API_KEY}
 
 # 🔹 КОПИРУЕМ ТОЛЬКО ТО, ЧТО НУЖНО ДЛЯ ЗАПУСКА (Никакого COPY . . !)
 COPY --from=builder /app/public ./public

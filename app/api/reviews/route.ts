@@ -3,7 +3,18 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
 // 🔹 Инициализация Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ✅ СТАЛО (ленивая инициализация):
+let resendInstance: Resend | null = null;
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY не установлен");
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 // 🔹 Адрес отправителя (консистентный с другими файлами)
 const FROM_EMAIL =
@@ -64,7 +75,7 @@ export async function POST(req: Request) {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/\n/g, "<br/>");
-
+    const resend = getResendClient(); // 🔹 Вызов только при реальном запросе
     const { data, error } = await resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to:

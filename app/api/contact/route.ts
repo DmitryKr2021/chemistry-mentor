@@ -5,7 +5,18 @@ import { Resend } from "resend";
 import { z } from "zod";
 
 // 🔹 Инициализация Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ✅ СТАЛО (ленивая инициализация):
+let resendInstance: Resend | null = null;
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY не установлен");
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 // 🔹 Адрес отправителя.
 const FROM_EMAIL =
@@ -77,7 +88,7 @@ export async function POST(request: NextRequest) {
 
   try {
     console.log("📤 Отправка сообщений через Resend...");
-
+    const resend = getResendClient(); // 🔹 Вызов только при реальном запросе
     // 2. Отправляем письмо АДМИНИСТРАТОРУ
     const { data: adminData, error: adminError } = await resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
