@@ -1,11 +1,6 @@
-// "use server";
-
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
-
-// 🔹 Инициализация Resend
-// const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ✅ СТАЛО (ленивая инициализация):
 let resendInstance: Resend | null = null;

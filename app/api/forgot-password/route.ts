@@ -3,9 +3,6 @@ import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import { prisma } from "@/app/utils/prisma";
 
-// // 🔹 Инициализация Resend
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
 // ✅ СТАЛО (ленивая инициализация):
 let resendInstance: Resend | null = null;
 function getResendClient(): Resend {

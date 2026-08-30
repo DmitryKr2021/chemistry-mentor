@@ -2,9 +2,6 @@ import { prisma } from "@/app/utils/prisma";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-// 🔹 Инициализация Resend
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
 // ✅ СТАЛО (ленивая инициализация):
 let resendInstance: Resend | null = null;
 function getResendClient(): Resend {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ReviewDialog from "../../forms/review.form";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,15 +14,23 @@ import {
 import { LogIn, UserPlus } from "lucide-react";
 import { useAuthStore } from "@/app/store/auth.store";
 import { useOpenAuthModal } from "@/app/store/useAuthModalStore";
-import Link from "next/link";
-import CommonButton from "@/app/components/common/CommonButton";
 
 export default function ReviewAction() {
   const { session, status } = useAuthStore();
-
   const { open } = useOpenAuthModal();
-  const handleLoginClick = () => open("login");
-  const handleRegisterClick = () => open("register");
+
+  // Локальное состояние для управления диалогом "Требуется авторизация"
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
+  const handleLoginClick = () => {
+    setIsAuthDialogOpen(false); // Закрываем диалог-предупреждение
+    open("login"); // Открываем модалку логина
+  };
+
+  const handleRegisterClick = () => {
+    setIsAuthDialogOpen(false); // Закрываем диалог-предупреждение
+    open("register"); // Открываем модалку регистрации
+  };
 
   // Состояние загрузки
   if (status === "loading") {
@@ -36,10 +45,16 @@ export default function ReviewAction() {
   if (!session) {
     return (
       <div className="flex justify-center">
-        <Dialog>
+        <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
           <DialogTrigger asChild>
-            <CommonButton>Оставить отзыв</CommonButton>
+            <Button
+              variant="default"
+              className={`min-w-fit whitespace-nowrap bg-[var(--button-yellow)] text-slate-900 px-4 sm:px-8 py-3 rounded-lg font-bold hover:bg-green-300 transition shadow-lg hover:shadow-green-400/50 cursor-pointer`}
+            >
+              Оставить отзыв
+            </Button>
           </DialogTrigger>
+
           <DialogContent className="sm:max-w-[450px] bg-white rounded-lg">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-slate-800">
@@ -50,29 +65,27 @@ export default function ReviewAction() {
                 Пожалуйста, войдите в аккаунт или создайте новый.
               </DialogDescription>
             </DialogHeader>
+
             <div className="flex flex-col gap-3 py-4">
+              {/* Убрали Link href="#", теперь это чистая кнопка с onClick */}
               <Button
-                asChild
-                className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-md"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-md cursor-pointer"
                 onClick={handleLoginClick}
               >
-                <Link href="#">
-                  <LogIn className="w-4 h-4" />
-                  Войти
-                </Link>
+                <LogIn className="w-4 h-4 mr-2" />
+                Войти
               </Button>
+
               <Button
-                asChild
                 variant="outline"
-                className="w-full rounded-md"
+                className="w-full rounded-md cursor-pointer"
                 onClick={handleRegisterClick}
               >
-                <Link href="#">
-                  <UserPlus className="w-4 h-4" />
-                  Регистрация
-                </Link>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Регистрация
               </Button>
             </div>
+            {/* Добавляем onOpenChange для закрытия по клику вне окна или на Esc */}
           </DialogContent>
         </Dialog>
       </div>
@@ -80,6 +93,5 @@ export default function ReviewAction() {
   }
 
   // ✅ АВТОРИЗОВАННЫЙ ПОЛЬЗОВАТЕЛЬ
-  // Показываем форму отзыва. Убедитесь, что в ReviewDialog убрана дублирующая проверка авторизации
   return <ReviewDialog />;
 }

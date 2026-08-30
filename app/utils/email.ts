@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
 // 🔹 ЛЕНИВАЯ инициализация: клиент создаётся только при первом вызове функции
 let resendInstance: Resend | null = null;
 
