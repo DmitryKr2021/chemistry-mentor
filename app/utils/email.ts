@@ -243,3 +243,90 @@ export async function sendWelcomeEmail({
     return { success: false, error: String(error) };
   }
 }
+
+// Отправка письма админу о новом ученике
+
+export async function sendAdminNewUserNotification({
+  userName,
+  userEmail,
+  userId,
+}: {
+  userName: string;
+  userEmail: string;
+  userId: string;
+}) {
+  const resend = getResendClient();
+
+  const adminEmail =
+    process.env.CONTACT_EMAIL ||
+    process.env.RESEND_FROM_EMAIL ||
+    "admin@example.com";
+  const FROM_EMAIL =
+    process.env.RESEND_FROM_EMAIL || "noreply@chemistry-mentor.ru";
+  const FROM_NAME = "Химия: путь к вершине";
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: adminEmail,
+      subject: `🆕 Новый пользователь: ${userName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2c3e50; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px; border-radius: 12px 12px 0 0; }
+            .content { background: #f8fafc; padding: 24px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+            .field { margin: 12px 0; padding: 12px; background: white; border-radius: 8px; border-left: 4px solid #10b981; }
+            .label { font-weight: 600; color: #64748b; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .value { font-size: 16px; color: #0f172a; font-weight: 500; }
+            .button { display: inline-block; padding: 10px 20px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 16px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2 style="margin: 0;">🎉 Новая регистрация на сайте</h2>
+            </div>
+            <div class="content">
+              <p>Здравствуйте, Администратор!</p>
+              <p>На платформе "Химия: путь к вершине" зарегистрировался новый пользователь.</p>
+              
+              <div class="field">
+                <div class="label">Имя</div>
+                <div class="value">${userName}</div>
+              </div>
+              <div class="field">
+                <div class="label">Email</div>
+                <div class="value"><a href="mailto:${userEmail}" style="color: #059669; text-decoration: none;">${userEmail}</a></div>
+              </div>
+              <div class="field">
+                <div class="label">ID пользователя в БД</div>
+                <div class="value" style="font-family: monospace; font-size: 14px;">${userId}</div>
+              </div>
+
+              <p style="margin-top: 24px;">
+                <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://chemistry-mentor.ru"}/admin/users" class="button">
+                  Перейти в панель управления
+                </a>
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    if (error) {
+      console.error("❌ Ошибка отправки уведомления админу:", error);
+      return { success: false, error: String(error) };
+    }
+
+    return { success: true, messageId: data?.id };
+  } catch (error) {
+    console.error("❌ Критическая ошибка отправки уведомления админу:", error);
+    return { success: false, error: String(error) };
+  }
+}

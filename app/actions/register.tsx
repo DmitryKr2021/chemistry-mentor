@@ -4,8 +4,11 @@ import { IFormData } from "@/types/form-data";
 import { saltAndHashPassword } from "@/app/utils/password";
 import { prisma } from "@/app/utils/prisma";
 import { headers } from "next/headers";
-import { sendWelcomeEmail } from "@/app/utils/email"; // 🔹 НОВОЕ: импорт функции
-import { after } from "next/server"; // 🔹 НОВОЕ: для фоновой отправки email
+import {
+  sendWelcomeEmail,
+  sendAdminNewUserNotification,
+} from "@/app/utils/email"; // 🔹 НОВОЕ: импорт функции
+import { after } from "next/server";
 import myDomain from "../config/site.config";
 
 type RegisterResult =
@@ -89,7 +92,7 @@ export async function registerUser(
       console.error("Ошибка сохранения согласия:", consentError);
     }
 
-    // 🔹 НОВОЕ: Отправка приветственного email в фоне
+    // 🔹 Отправка приветственного email в фоне
     // Используем after() из Next.js — это гарантирует, что email отправится
     // даже после того, как Server Action вернёт результат
     after(async () => {
@@ -114,6 +117,24 @@ export async function registerUser(
           console.error(
             `❌ [EMAIL] Не удалось отправить письмо на ${user.email}:`,
             result.error,
+          );
+        }
+
+        // 2. Отправляем уведомление администратору
+        const adminResult = await sendAdminNewUserNotification({
+          userName: user.name,
+          userEmail: user.email,
+          userId: user.id,
+        });
+
+        if (adminResult.success) {
+          console.log(
+            `✅ [ADMIN EMAIL] Уведомление о новом пользователе отправлено админу`,
+          );
+        } else {
+          console.error(
+            `❌ [ADMIN EMAIL] Ошибка отправки уведомления админу:`,
+            adminResult.error,
           );
         }
       } catch (emailError) {
