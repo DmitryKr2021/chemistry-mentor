@@ -77,4 +77,4 @@ git clone https://github.com/your-username/chemistry-tutor.git
 cd chemistry-tutor
 ```
 
-[Адрес сайта] (https://chemistry-mentor.ru/)
+## 🚀 [Перейти на сайт](https://chemistry-mentor.ru/)

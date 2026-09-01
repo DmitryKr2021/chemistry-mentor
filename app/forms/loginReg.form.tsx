@@ -22,7 +22,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 // 👇 Импортируем стор и селекторы
@@ -38,6 +38,40 @@ import { Logo } from "@/app/components/UI/layout/header";
 import { registerUser } from "../actions/register";
 import { signInWithCredentials } from "../actions/login";
 import { ConsentCheckbox } from "@/app/components/ConsentCheckbox";
+
+// 🔹 Функция генерации надежного пароля
+function generateRandomPassword(length: number = 12): string {
+  const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lower = "abcdefghijklmnopqrstuvwxyz";
+  const digits = "0123456789";
+  const special = "!@#$%^&*";
+  const allChars = upper + lower + digits + special;
+
+  let password = "";
+
+  // 1. Гарантируем хотя бы одну заглавную букву
+  password += upper.charAt(Math.floor(Math.random() * upper.length));
+
+  // 2. Гарантируем хотя бы одну цифру
+  password += digits.charAt(Math.floor(Math.random() * digits.length));
+
+  // 3. Гарантируем хотя бы одну строчную букву (для надежности)
+  password += lower.charAt(Math.floor(Math.random() * lower.length));
+
+  // 4. Гарантируем хотя бы один спецсимвол (для надежности)
+  password += special.charAt(Math.floor(Math.random() * special.length));
+
+  // 5. Заполняем оставшуюся длину случайными символами из общего набора
+  for (let i = 4; i < length; i++) {
+    password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+  }
+
+  // 6. Перемешиваем символы, чтобы гарантированные символы не всегда были первыми
+  return password
+    .split("")
+    .sort(() => Math.random() - 0.5)
+    .join("");
+}
 
 // Схемы валидации
 const loginSchema = z.object({
@@ -208,6 +242,20 @@ export default function AuthModal() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 🔹 Функция генерации и заполнения пароля
+  const handleGeneratePassword = () => {
+    const newPassword = generateRandomPassword(12);
+    registerForm.setValue("password", newPassword, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    registerForm.setValue("confirmPassword", newPassword, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setShowPassword(true);
   };
 
   // Обработка восстановления пароля
@@ -446,10 +494,28 @@ export default function AuthModal() {
                             <Input
                               type={showPassword ? "text" : "password"}
                               placeholder="••••••••"
-                              className="bg-slate-50 px-4"
+                              className="bg-slate-50 px-4 pr-20" // ← pr-20 освобождает место для ДВУХ кнопок
                               disabled={isLoading}
                               {...field}
                             />
+
+                            {/* 🔹 КНОПКА ГЕНЕРАЦИИ ПАРОЛЯ */}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-8 top-0 h-full px-2 hover:bg-transparent hover:cursor-pointer"
+                              onClick={handleGeneratePassword}
+                              disabled={isLoading}
+                              title="Сгенерировать надежный пароль"
+                            >
+                              <Sparkles className="h-4 w-4 text-emerald-600" />
+                              <span className="sr-only">
+                                Сгенерировать пароль
+                              </span>
+                            </Button>
+
+                            {/* КНОПКА ПОКАЗАТЬ/СКРЫТЬ */}
                             <Button
                               type="button"
                               variant="ghost"
@@ -476,7 +542,7 @@ export default function AuthModal() {
                     )}
                   />
 
-                  {/* Подтверждение пароля */}
+                  {/* Подтверждение пароля (остается без изменений, но будет обновляться автоматически) */}
                   <FormField
                     control={registerForm.control}
                     name="confirmPassword"
