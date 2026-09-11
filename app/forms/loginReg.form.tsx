@@ -215,28 +215,58 @@ export default function AuthModal() {
   };
 
   // Обработка регистрации
+
   const onRegisterSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
-    setMessage(null);
 
     try {
       const result = await registerUser(data);
+
       if (!result.success) {
-        console.error(result.error);
-        handleClose();
-        throw new Error(result.error);
+        console.error("❌ Ошибка регистрации:", result.error);
+
+        const lowerError = result.error.toLowerCase();
+
+        // 🔹 1. Привязываем ошибку к конкретному полю формы (строго типизировано)
+        if (lowerError.includes("email")) {
+          registerForm.setError("email", {
+            type: "manual",
+            message: result.error,
+          });
+        } else if (lowerError.includes("парол")) {
+          registerForm.setError("password", {
+            type: "manual",
+            message: result.error,
+          });
+        } else {
+          // 🔹 2. Для всех остальных ошибок (включая согласие) используем "root"
+          registerForm.setError("root", {
+            type: "manual",
+            message: result.error,
+          });
+        }
+
+        // 🔹 3. Показываем toast с реальным текстом ошибки
+        toast.error(result.error, {
+          description: "Проверьте выделенные поля или попробуйте другие данные",
+        });
+
+        // НЕ закрываем модалку, даем пользователю исправить ошибку
+        return;
       }
-      console.log("registration form result==", result);
-      // Если успех — закрываем модальное окно
+
+      // ✅ Успешная регистрация
+      console.log("✅ Registration result:", result);
+
       handleClose();
-      // Здесь можно добавить toast уведомление об успехе
+
       toast.success("Регистрация успешна!", {
         description: `${formattedDate}`,
       });
     } catch (error) {
-      console.error("Ошибка регистрации:", error);
-      // Здесь можно добавить toast уведомление об ошибке
-      toast.error("Ошибка регистрации", {
+      // Этот блок сработает только при сетевых ошибках или падениях сервера
+      console.error("💥 Критическая ошибка регистрации:", error);
+      toast.error("Ошибка соединения с сервером. Попробуйте позже.", {
         description: `${formattedDate}`,
       });
     } finally {

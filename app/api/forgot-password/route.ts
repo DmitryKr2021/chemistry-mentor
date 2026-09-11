@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
                 <div class="password">${newPassword}</div>
               </div>
 
-              <p>Рекомендуем изменить пароль после входа в систему.</p>
+              <p>Рекомендуем изменить пароль в личном кабинете после входа в систему.</p>
 
               <div class="warning">
                 <strong>⚠️ Важно:</strong> Если вы не запрашивали восстановление пароля, 

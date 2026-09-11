@@ -9,6 +9,7 @@ import Header from "@/app/components/UI/layout/header";
 import Footer from "@/app/components/UI/layout/footer";
 import { JsonLd } from "./components/seo/JsonLd";
 import myDomain from "./config/site.config";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   metadataBase: new URL(myDomain),
@@ -109,9 +110,6 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        {/* 🔹 Добавьте сюда другие внешние ресурсы, если нужно */}
-        {/* <link rel="preconnect" href="https://www.google-analytics.com" /> */}
-        {/* <link rel="preconnect" href="https://mc.yandex.ru" /> */}
       </head>
       <body
         className={`${GeistSans.className} ${GeistMono.className} w-full m-0 p-0 min-h-screen flex flex-col`}
@@ -127,6 +125,36 @@ export default async function RootLayout({
             className: "custom-toast",
           }}
         />
+        <Script
+          id="yandex-metrika"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+              m[i].l=1*new Date();
+              for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+              k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+              (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+              ym(112461148, "init", {
+                   clickmap:true,
+                   trackLinks:true,
+                   accurateTrackBounce:true,
+                   webvisor:true
+              });
+            `,
+          }}
+        />
+        <noscript>
+          <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://mc.yandex.ru/watch/112461148" // ← Замените на ваш реальный номер счетчика
+              alt=""
+              style={{ position: "absolute", left: "-9999px" }}
+            />
+          </div>
+        </noscript>
       </body>
     </html>
   );
