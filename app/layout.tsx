@@ -110,6 +110,37 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "EducationalOrganization",
+              name: "Chemistry Mentor",
+              description: "Онлайн-репетитор по химии",
+              founder: {
+                "@type": "Person",
+                name: "Дмитрий Крыльский",
+                jobTitle: "Репетитор по химии, доктор химических наук",
+              },
+              hasOfferCatalog: {
+                "@type": "OfferCatalog",
+                name: "Услуги репетитора по химии",
+                itemListElement: [
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "Подготовка к ЕГЭ по химии",
+                      description: "Системная подготовка к ЕГЭ по химии",
+                    },
+                  },
+                ],
+              },
+            }),
+          }}
+        />
       </head>
       <body
         className={`${GeistSans.className} ${GeistMono.className} w-full m-0 p-0 min-h-screen flex flex-col`}
