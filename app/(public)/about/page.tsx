@@ -1,7 +1,14 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { Award, BadgeCheck, GraduationCap, CheckCircle2 } from "lucide-react";
+import { Award, GraduationCap } from "lucide-react";
+import StudentsMap from "./studentsMap";
+import { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "О репетиторе по химии Дмитрии Крыльском | Chemistry Mentor",
+  description:
+    "Репетитор по химии с 20-летним опытом. Ученики из 15+ городов России, Финляндии и Австрии. Онлайн-формат стирает границы.",
+};
 export default function AboutPage() {
   return (
     <div className="min-h-screen w-screen bg-slate-700 overflow-x-hidden -ml-4">
@@ -208,6 +215,12 @@ export default function AboutPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
+      {/* Секция с картой */}
+      <section className="px-4 sm:px-6 lg:px-[50px] w-full py-16 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <StudentsMap />
         </div>
       </section>
     </div>
